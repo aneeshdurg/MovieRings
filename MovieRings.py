@@ -29,7 +29,7 @@ def drawRings(frameavg, movie, flag):
 
 	#Drawing circles using the average color of each frame
 	for i in xrange(len(frameavg)):
-		(r, b, g)=(int(frameavg[i][0]), int(frameavg[i][1]), int(frameavg[0][2]))
+		(r, b, g)=(int(frameavg[i][0]), int(frameavg[i][1]), int(frameavg[i][2]))
 		color=r, b, g
 		pygame.draw.circle(screen, color, [SIZE[0]/2, SIZE[1]/2],3*(len(frameavg))+3-3*(i+1))
 	pygame.display.flip()
@@ -86,33 +86,33 @@ while True:
 			for i in xrange(100):
 				for j in xrange(100):
 					temp, temp1, temp2 = pix[int(i*(x/100)), int(j*(y/100))]
-					c.append([temp, temp1, temp2])
+					#c.append([temp, temp1, temp2])
 					#print temp, temp1, temp2
-					# cone.append(temp)
-					# ctwo.append(temp1)
-					# cthree.append(temp2)
-			# for i in xrange(10000):
-			# 	avgo+=cone[i]
-			# 	avgt+=ctwo[i]
-			# 	avgth+=cthree[i]
-			# avgo/=10000	
-			# avgt/=10000
-			# avgth/=10000
-			passer=False
-			maximum=[c.count(c[0]), c[0]]
-			for color in c:
-				counter=c.count(color)
-				if counter<maximum[0]:
-					c.remove(color)
-				else:
-					if maximum[1] in c:
-						c.remove(maximum[1])
-					maximum[1]=color
-					maximum[0]=counter	
+					cone.append(temp)
+					ctwo.append(temp1)
+					cthree.append(temp2)
+			for i in xrange(10000):
+				avgo+=cone[i]
+				avgt+=ctwo[i]
+				avgth+=cthree[i]
+			avgo/=10000	
+			avgt/=10000
+			avgth/=10000
+			# passer=False
+			# maximum=[c.count(c[0]), c[0]]
+			# for color in c:
+			# 	counter=c.count(color)
+			# 	if counter<maximum[0]:
+			# 		c.remove(color)
+			# 	else:
+			# 		if maximum[1] in c:
+			# 			c.remove(maximum[1])
+			# 		maximum[1]=color
+			# 		maximum[0]=counter	
 					
 								
-			#print maximum[1]
-			frameavg.append(maximum[1])
+			# #print maximum[1]
+			frameavg.append([avgo, avgt, avgth])
 		drawRings(frameavg, movie, flag)	
 		os.chdir('..')	
 		continue
