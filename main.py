@@ -39,11 +39,12 @@ movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
 #Getting movie name:
 while True:
 	flag = False
-	movie = raw_input("Enter movie name ('list' for all available movies): ")
+	movie = raw_input("Enter Movie Name ('list' for all available movies): ")
 	os.system('cls' if os.name == 'nt' else 'clear')
 	if movie == "list":
 		for name in movielist:
-			print "\t" + name
+			if not(name.startswith('.')):
+				print "\t" + name	
 		continue	
 	if os.path.exists(movie) and os.path.isdir(movie):
 		#Changing Direcotry and getting file names:
