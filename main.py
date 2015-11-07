@@ -10,29 +10,31 @@ def drawRings(frameAvg, movie, flag):
 		foo = open("index.txt", "r")
 		temp = foo.readlines()
 		foo.close()
-		for i in xrange(len(temp)/3):
-			frameAvg.append([temp[3 * i], temp[(3 * i) + 1], temp[(3 * i) + 2]]) 	
+		for i in xrange(len(temp) / 4):
+			frameAvg.append([temp[3 * i], temp[(3 * i) + 1], temp[(3 * i) + 2], temp[(3 * i) + 3]]) 	
 	else:
 		##Writing to file
 		foo = open("index.txt", "w")
 		for i in xrange(len(frameAvg)):
-			for j in xrange(3):		
+			for j in xrange(4):		
 				foo.write(str(frameAvg[i][j]))
 				foo.write("\n")
 		foo.close()	
 			
 	#Initializing pygame
 	pygame.init()
-	SIZE = [1050, 1050]
+	SIZE = [1050, 750]
 	screen = pygame.display.set_mode(SIZE)
 	pygame.display.set_caption(movie)
 
 	#Drawing circles using the average color of each frame
 	for i in xrange(len(frameAvg)):
-		(r, b, g)=(int(frameAvg[i][0]), int(frameAvg[i][1]), int(frameAvg[i][2]))
-		color=(r, b, g)
-		pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], 3 * (len(frameAvg)) + 3 - 3 * (i + 1))
+		(r, b, g, a)=(int(frameAvg[i][0]), int(frameAvg[i][1]), int(frameAvg[i][2]), int(frameAvg[i][3]))
+		color=(r, b, g, a)
+		pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], 6 * (len(frameAvg)) + 6 - 6 * (i + 1), 5)
 	pygame.display.flip()
+
+	pygame.image.save(screen, "RESULT.JPG")
 
 
 movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
@@ -63,36 +65,40 @@ while True:
 				moviefile = name
 
 		files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
-		if len(files) == 0:
+		if len(files) <= 3:
 			os.system("ffmpeg -i \"" + moviefile + "\" -r 0.0167 %02d.jpg")
 		for name in files:
 			os.system('cls' if os.name == 'nt' else 'clear')
 			print ("proccessing frame " +name[:-4] + " of " + files[len(files)-1][:-4])
 			im = Image.open(name)
-			pix=im.load()
-			x, y =im.size 
+			pix = im.convert('RGBA')
+			x, y = im.size 
 			RED_VALS = []
 			BLUE_VALS = []
 			GREEN_VALS =[]
+			ALPHA_VALS = []
 			avgRed = 0
 			avgBlue = 0
 			avgGreen = 0
+			avgAlpha = 0
 			for i in xrange(100):
 				for j in xrange(100):
-					temp, temp1, temp2 = pix[int(i * (x / 100)), int(j * (y / 100))]
-					RED_VALS.append(temp)
-					BLUE_VALS.append(temp1)
-					GREEN_VALS.append(temp2)
+					tempR, tempB, tempG, tempA = pix.getpixels((i, j))
+					RED_VALS.append(tempR)
+					BLUE_VALS.append(tempB)
+					GREEN_VALS.append(tempG)
+					ALPHA_VALS.append(tempA)
 			for i in xrange(10000):
 				avgRed += RED_VALS[i]
 				avgBlue += BLUE_VALS[i]
 				avgGreen += GREEN_VALS[i]
+				avgAlpha += ALPHA_VALS[i]
 
 			avgRed /= 10000	
 			avgBlue /= 10000
 			avgGreen /= 10000
-
-			frameAvg.append([avgRed, avgBlue, avgGreen])
+			avgAlpha /= 10000
+			frameAvg.append([avgRed, avgBlue, avgGreen, avgAlpha])
 		drawRings(frameAvg, movie, flag)	
 		os.chdir('..')	
 		continue
