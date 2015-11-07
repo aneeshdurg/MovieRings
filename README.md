@@ -1,7 +1,5 @@
 # MovieRings
 
 Made at Yhack by:
-
-	Aneesh Durg
-	
-	Akash Goel	
+>Aneesh Durg
+>Akash Goel	
