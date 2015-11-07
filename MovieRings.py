@@ -79,23 +79,40 @@ while True:
 			cone=[]
 			ctwo=[]
 			cthree=[]
+			c=[]
 			avgo=0
 			avgt=0
 			avgth=0
-			for i in xrange(x):
-				for j in xrange(y):
-					temp, temp1, temp2 = pix[i, j]
-					cone.append(temp)
-					ctwo.append(temp1)
-					cthree.append(temp2)
-			for i in xrange(x*y):
-				avgo+=cone[i]
-				avgt+=ctwo[i]
-				avgth+=cthree[i]
-			avgo/=x*y	
-			avgt/=x*y
-			avgth/=x*y
-			frameavg.append((avgo, avgt, avgth))
+			for i in xrange(100):
+				for j in xrange(100):
+					temp, temp1, temp2 = pix[int(i*(x/100)), int(j*(y/100))]
+					c.append([temp, temp1, temp2])
+					#print temp, temp1, temp2
+					# cone.append(temp)
+					# ctwo.append(temp1)
+					# cthree.append(temp2)
+			# for i in xrange(10000):
+			# 	avgo+=cone[i]
+			# 	avgt+=ctwo[i]
+			# 	avgth+=cthree[i]
+			# avgo/=10000	
+			# avgt/=10000
+			# avgth/=10000
+			passer=False
+			maximum=[c.count(c[0]), c[0]]
+			for color in c:
+				counter=c.count(color)
+				if counter<maximum[0]:
+					c.remove(color)
+				else:
+					if maximum[1] in c:
+						c.remove(maximum[1])
+					maximum[1]=color
+					maximum[0]=counter	
+					
+								
+			#print maximum[1]
+			frameavg.append(maximum[1])
 		drawRings(frameavg, movie, flag)	
 		os.chdir('..')	
 		continue
