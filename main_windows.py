@@ -4,9 +4,70 @@ import os
 import pygame
 import subprocess
 import re
-from decimal import Decimal
+# from decimal import Decimal
+def fulldisplay(img):
+	pygame.init()
+	SIZE = [1380, 850]
+	screen = pygame.display.set_mode(SIZE)
+	pygame.display.set_caption("Displaying frame: "+img)
+	image=pygame.image.load(img+".jpg")
+	screen.blit(image, (0, 0))
+	pygame.display.flip()
+	raw_input()
+	pygame.display.quit()
+	pygame.quit()
+	return 0	
+def menu():
+	movielist=[name for name in os.listdir('.') if os.path.isdir(name) and not name==".git"]
+	pygame.init()
+	SIZE = [1380, 850]
+	screen = pygame.display.set_mode(SIZE)
+	pygame.display.set_caption("Menu")
+	font=pygame.font.Font(None,30)
+	i=0
+	flag=False
+	while True:
+		if flag:
+			break
+		for event in pygame.event.get():
+			if event.type==pygame.QUIT:
+				exit()
+			elif event.type==pygame.MOUSEBUTTONDOWN:
+				x, y=pygame.mouse.get_pos()	
+				if x<SIZE[0]*0.25:
+					i-=1
+					i=i if i>=0 else len(movielist)+i
+					
+				elif x>SIZE[0]*0.75:
+					i+=1
+					i=i if i<len(movielist) else i-len(movielist)
+					
+				else:
+					flag=True
+		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			exit()			
+		movie=movielist[i]
+		os.chdir(os.getcwd() + '/' + movie + '/')
+		if os.path.exists("RESULT.jpg"):
+			img=pygame.image.load("RESULT.jpg") 
+	   		img=pygame.transform.scale(img, (SIZE[0], SIZE[1]))
+	   		screen.blit(img, (0, 0))
+	   		
+		else:
+			screen.fill((0, 0, 0))
+			error=font.render("Click here to render now!", 1, (255, 255, 255))
+			screen.blit(error, (SIZE[0]/2-200, SIZE[1]/2))
+	  	title=font.render(movie, 1,(255,255,255))
+		screen.blit(title, (5, 10))
+		pygame.display.flip()
 
-def drawRings(frameAvg, movie, flag):
+		os.chdir('..')
+	pygame.display.quit()
+	pygame.quit()					
+	return movie	
+						
+
+def drawPatterns(frameAvg, movie, flag):
 	frameid=""
 	if flag:
 		##Reading file
@@ -25,75 +86,110 @@ def drawRings(frameAvg, movie, flag):
 				foo.write(str(frameAvg[i][j]))
 				foo.write("\n")
 		foo.close()	
-
 	done=False
+	#Initializing pygame
 	pygame.init()
 	SIZE = [1380, 850]
 	screen = pygame.display.set_mode(SIZE)
 	pygame.display.set_caption(movie)
 	while not done:
-		#Initializing pygame
-		
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				done = True 
-		screen.fill((0, 0, 0))
-		for i in xrange(len(frameAvg)):
-			r, b, g=(int(frameAvg[len(frameAvg)-1-i][0]), int(frameAvg[len(frameAvg)-1-i][1]), int(frameAvg[len(frameAvg)-1-i][2]))
-			color=(r, b, g)
-			pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], len(frameAvg)-i)
+		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			done=True
+		
 		x, y=pygame.mouse.get_pos()
 		r=int(sqrt(((SIZE[0]/2)-x)*((SIZE[0]/2)-x)+((SIZE[1]/2)-y)*((SIZE[1]/2)-y)))
-		if (r - 1)>len(frameAvg):
+		if r>len(frameAvg):
 			frameid=""
 		else:
 			frameid=str(r-1)
 		if len(frameid)<3:
 			for i in xrange(3-len(frameid)):
 				frameid="0"+frameid
-			#print frameid+".bmp"		
-		if not os.path.exists(frameid+".bmp"):
+		#print frameid+".jpg"		
+		if not os.path.exists(frameid+".jpg"):
 			frameid=""
-				
+			#while True:
+			
+				#pygame.display.flip()
+				# for event in pygame.event.get():
+				# 	if event.type == pygame.MOUSEBUTTONUP:
+				# 		break
+		screen.fill((0, 0, 0))		
+		#Drawing circles using the average color of each frame
+		for i in xrange(len(frameAvg)):
+			r, b, g=(int(frameAvg[len(frameAvg)-1-i][0]), int(frameAvg[len(frameAvg)-1-i][1]), int(frameAvg[len(frameAvg)-1-i][2]))
+			color=(r, b, g)
+			pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], len(frameAvg)-i)
 		if not frameid=="":
 			pygame.display.set_caption("Displaying frame "+frameid+" of "+movie)
-			img=pygame.image.load(frameid+".bmp") 
-			img = pygame.transform.scale(img, (500, 250))
-			screen.blit(img,(x, y))
+			img=pygame.image.load(frameid+".jpg") 
+			img = pygame.transform.scale(img, (SIZE[0]/4, SIZE[1]/4))
+			screen.blit(img,(x, y-SIZE[1]/4))
 		else:
 			pygame.display.set_caption(movie)
+		if pygame.mouse.get_pressed()[0]:
+			pygame.display.quit()
+			pygame.quit()
+			fulldisplay(frameid)
+			pygame.init()
+			SIZE = [1380, 850]
+			screen = pygame.display.set_mode(SIZE)
+			pygame.display.set_caption(movie)	
+			# ravg, bavg, gavg=0, 0, 0
+			# for i in xrange(len(frameAvg)):
+			# 	ravg+=int(frameAvg[i][0])
+			# 	bavg+=int(frameAvg[i][1])
+			# 	gavg+=int(frameAvg[i][2])
+			# ravg/=len(frameAvg)	
+			# bavg/=len(frameAvg)
+			# gavg/=len(frameAvg) 
 			#screen.fill((0, 0, 0))
-
-
-		#Drawing circles using the average color of each frame
-		
 		pygame.display.flip()
-	
-	pygame.image.save(screen, "RESULT.bmp")
+
+	#ensures that RESULT has the avg background
+	pygame.display.set_caption(movie)
+	ravg, bavg, gavg=0, 0, 0
+	for i in xrange(len(frameAvg)):
+		ravg+=int(frameAvg[i][0])
+		bavg+=int(frameAvg[i][1])
+		gavg+=int(frameAvg[i][2])
+	ravg/=len(frameAvg)	
+	bavg/=len(frameAvg)
+	gavg/=len(frameAvg) 
+	screen.fill((ravg, bavg, gavg))	
+	for i in xrange(len(frameAvg)):
+		r, b, g=(int(frameAvg[len(frameAvg)-1-i][0]), int(frameAvg[len(frameAvg)-1-i][1]), int(frameAvg[len(frameAvg)-1-i][2]))
+		color=(r, b, g)
+		pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], len(frameAvg)-i)
+	pygame.display.flip()
+	pygame.image.save(screen, "RESULT.JPG")
 	pygame.display.quit()
 	pygame.quit()
 
 
 def get_video_length(path):
-	process = subprocess.Popen(['ffmpeg', '-i', path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	stdout, stderr = process.communicate()
-	matches = re.search(r"Duration:\s{1}(?P<hours>\d+?):(?P<minutes>\d+?):(?P<seconds>\d+\.\d+?),", stdout, re.DOTALL).groupdict()
-	hours = Decimal(matches['hours'])
-	minutes = Decimal(matches['minutes'])
-	seconds = Decimal(matches['seconds'])
- 
-	total = 0
-	total += 60 * 60 * hours
-	total += 60 * minutes
-	total += seconds
-	return total
-	
+	#process = subprocess.Popen(['ffmpeg', '-i', "\""+path+"\""], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	os.system('ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "'+path+'">>duration.txt')
+	#stdout, stderr = process.communicate()
+	foo = open("duration.txt", "r")
+	temp = foo.readline()
+	temp=temp.rsplit('.',1)[0]
+	temp=int(temp)
+	return temp
+
 movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
+#menu()
 #Getting movie name:
 suggestions=[]
 while True:
 	flag = False
-	movie = raw_input("Enter Movie Name ('list' for all available movies): ")
+	movie=menu()
+	if movie=="quit":
+		break
+	#movie = raw_input("Enter Movie Name ('list' for all available movies): ")
 	if len(suggestions)>0 and movie.isdigit():
 		movie=suggestions[int(movie)-1]
 
@@ -114,7 +210,7 @@ while True:
 			flag = True
 			
 		if flag:
-			drawRings([], movie, flag)
+			drawPatterns([], movie, flag)
 			os.chdir('..')	
 			continue	
 		frameAvg = []
@@ -122,16 +218,19 @@ while True:
 		moviefile = ""
 		for name in os.listdir('.'):
 			#print name
-			if name.startswith(movie) and not name.endswith('.bmp'):
+			if name.startswith(movie) and not name.endswith('.jpg'):
 				moviefile = name
-
 		duration = get_video_length(moviefile)
-		frames = 410 / duration
-		frames = round(frames, 2)
-		files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.bmp')]
+		#duration = os.system("ffmpeg -i file.flv 2>&1 | grep \"Duration\"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, \":\"); split(A[3], B, \".\"); print 3600*A[1] + 60*A[2] + B[1] }'")
+		frames=0
+		if duration==0:
+			frames=0.0167
+		else:
+			frames = 400.0/duration 
+		files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
 		if len(files) <= 1:
-			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 1380x850 -f image2 %03d.bmp")
-			
+			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 1380x850 -f image2 %03d.jpg")
+			files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
 		for name in files:
 			os.system('cls' if os.name == 'nt' else 'clear')
 			print ("proccessing frame " +name[:-4] + " of " + files[len(files)-1][:-4])
@@ -150,7 +249,7 @@ while True:
 				for j in xrange(100):
 					#print pix.getpixels((i, j))
 					#raw_input()
-					tempR, tempB, tempG = pix[int(i * 13), int(j * 8)]
+					tempR, tempB, tempG = pix[int(i * 13.8), int(j*8.5)]
 					RED_VALS.append(tempR)
 					BLUE_VALS.append(tempB)
 					GREEN_VALS.append(tempG)
@@ -166,7 +265,7 @@ while True:
 			avgGreen /= 10000
 			#avgAlpha /= 10000
 			frameAvg.append([avgRed, avgBlue, avgGreen])
-		drawRings(frameAvg, movie, flag)	
+		drawPatterns(frameAvg, movie, flag)	
 		os.chdir('..')	
 		continue
 	else:
