@@ -36,10 +36,14 @@ def menu():
 		os.chdir(os.getcwd() + '/' + movie + '/')
 		if os.path.exists("RESULT.jpg"):
 			img=pygame.image.load("RESULT.jpg") 
-			screen.blit(img, (0, 10))
-	  		title=font.render(movie, 1,(255,255,255))
-	   		screen.blit(title, (0, 0))
-			pygame.display.flip()
+	   		screen.blit(img, (0, 10))	
+		else:
+			screen.fill((0, 0, 0))
+			error=font.render("Click here to render now!", 1, (255, 255, 255))
+			screen.blit(error, (SIZE[0]/2-200, SIZE[1]/2))
+	  	title=font.render(movie, 1,(255,255,255))
+		screen.blit(title, (0, 0))
+		pygame.display.flip()
 
 		os.chdir('..')
 	pygame.display.quit()
