@@ -5,6 +5,18 @@ import pygame
 import subprocess
 import re
 # from decimal import Decimal
+def fulldisplay(img):
+	pygame.init()
+	SIZE = [1380, 850]
+	screen = pygame.display.set_mode(SIZE)
+	pygame.display.set_caption("Displaying frame: "+img)
+	image=pygame.image.load(img+".jpg")
+	screen.blit(image, (0, 0))
+	pygame.display.flip()
+	raw_input()
+	pygame.display.quit()
+	pygame.quit()
+	return 0	
 def menu():
 	movielist=[name for name in os.listdir('.') if os.path.isdir(name) and not name==".git"]
 	pygame.init()
@@ -32,17 +44,21 @@ def menu():
 					
 				else:
 					flag=True
+		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			exit()			
 		movie=movielist[i]
 		os.chdir(os.getcwd() + '/' + movie + '/')
 		if os.path.exists("RESULT.jpg"):
 			img=pygame.image.load("RESULT.jpg") 
-	   		screen.blit(img, (0, 10))	
+	   		img=pygame.transform.scale(img, (SIZE[0], SIZE[1]))
+	   		screen.blit(img, (0, 0))
+	   		
 		else:
 			screen.fill((0, 0, 0))
 			error=font.render("Click here to render now!", 1, (255, 255, 255))
 			screen.blit(error, (SIZE[0]/2-200, SIZE[1]/2))
 	  	title=font.render(movie, 1,(255,255,255))
-		screen.blit(title, (0, 0))
+		screen.blit(title, (5, 10))
 		pygame.display.flip()
 
 		os.chdir('..')
@@ -51,7 +67,7 @@ def menu():
 	return movie	
 						
 
-def drawRings(frameAvg, movie, flag):
+def drawPatterns(frameAvg, movie, flag):
 	frameid=""
 	if flag:
 		##Reading file
@@ -82,46 +98,55 @@ def drawRings(frameAvg, movie, flag):
 				done = True 
 		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
 			done=True
-		if pygame.mouse.get_pressed()[0]:
-			x, y=pygame.mouse.get_pos()
-			r=int(sqrt(((SIZE[0]/2)-x)*((SIZE[0]/2)-x)+((SIZE[1]/2)-y)*((SIZE[1]/2)-y)))
-			if r>len(frameAvg):
-				frameid=""
-			else:
-				frameid=str(r-1)
-			if len(frameid)<3:
-				for i in xrange(3-len(frameid)):
-					frameid="0"+frameid
-			#print frameid+".jpg"		
-			if not os.path.exists(frameid+".jpg"):
-				frameid=""
-				#while True:
-				
-					#pygame.display.flip()
-					# for event in pygame.event.get():
-					# 	if event.type == pygame.MOUSEBUTTONUP:
-					# 		break
-		if not frameid=="":
-			pygame.display.set_caption("Displaying frame "+frameid+" of "+movie)
-			img=pygame.image.load(frameid+".jpg") 
-			img = pygame.transform.scale(img, (SIZE[0], SIZE[1]))
-			screen.blit(img,(0, 0))
+		
+		x, y=pygame.mouse.get_pos()
+		r=int(sqrt(((SIZE[0]/2)-x)*((SIZE[0]/2)-x)+((SIZE[1]/2)-y)*((SIZE[1]/2)-y)))
+		if r>len(frameAvg):
+			frameid=""
 		else:
-			pygame.display.set_caption(movie)
-			ravg, bavg, gavg=0, 0, 0
-			for i in xrange(len(frameAvg)):
-				ravg+=int(frameAvg[i][0])
-				bavg+=int(frameAvg[i][1])
-				gavg+=int(frameAvg[i][2])
-			ravg/=len(frameAvg)	
-			bavg/=len(frameAvg)
-			gavg/=len(frameAvg) 
-			screen.fill((ravg, bavg, gavg))
+			frameid=str(r-1)
+		if len(frameid)<3:
+			for i in xrange(3-len(frameid)):
+				frameid="0"+frameid
+		#print frameid+".jpg"		
+		if not os.path.exists(frameid+".jpg"):
+			frameid=""
+			#while True:
+			
+				#pygame.display.flip()
+				# for event in pygame.event.get():
+				# 	if event.type == pygame.MOUSEBUTTONUP:
+				# 		break
+		screen.fill((0, 0, 0))		
 		#Drawing circles using the average color of each frame
 		for i in xrange(len(frameAvg)):
 			r, b, g=(int(frameAvg[len(frameAvg)-1-i][0]), int(frameAvg[len(frameAvg)-1-i][1]), int(frameAvg[len(frameAvg)-1-i][2]))
 			color=(r, b, g)
 			pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], len(frameAvg)-i)
+		if not frameid=="":
+			pygame.display.set_caption("Displaying frame "+frameid+" of "+movie)
+			img=pygame.image.load(frameid+".jpg") 
+			img = pygame.transform.scale(img, (SIZE[0]/4, SIZE[1]/4))
+			screen.blit(img,(x, y-SIZE[1]/4))
+		else:
+			pygame.display.set_caption(movie)
+		if pygame.mouse.get_pressed()[0]:
+			pygame.display.quit()
+			pygame.quit()
+			fulldisplay(frameid)
+			pygame.init()
+			SIZE = [1380, 850]
+			screen = pygame.display.set_mode(SIZE)
+			pygame.display.set_caption(movie)	
+			# ravg, bavg, gavg=0, 0, 0
+			# for i in xrange(len(frameAvg)):
+			# 	ravg+=int(frameAvg[i][0])
+			# 	bavg+=int(frameAvg[i][1])
+			# 	gavg+=int(frameAvg[i][2])
+			# ravg/=len(frameAvg)	
+			# bavg/=len(frameAvg)
+			# gavg/=len(frameAvg) 
+			#screen.fill((0, 0, 0))
 		pygame.display.flip()
 
 	#ensures that RESULT has the avg background
@@ -185,7 +210,7 @@ while True:
 			flag = True
 			
 		if flag:
-			drawRings([], movie, flag)
+			drawPatterns([], movie, flag)
 			os.chdir('..')	
 			continue	
 		frameAvg = []
@@ -240,7 +265,7 @@ while True:
 			avgGreen /= 10000
 			#avgAlpha /= 10000
 			frameAvg.append([avgRed, avgBlue, avgGreen])
-		drawRings(frameAvg, movie, flag)	
+		drawPatterns(frameAvg, movie, flag)	
 		os.chdir('..')	
 		continue
 	else:
