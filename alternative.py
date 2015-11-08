@@ -4,7 +4,34 @@ import os
 import pygame
 import subprocess
 import re
-from decimal import Decimal
+# from decimal import Decimal
+# def menu():
+# 	movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
+# 	pygame.init()
+# 	SIZE = [1380, 850]
+# 	screen = pygame.display.set_mode(SIZE)
+# 	pygame.display.set_caption("Menu")
+	
+# 	for i in xrange(2):
+# 		movie=movielist[i]
+# 		os.chdir(os.getcwd() + '/' + movie + '/')
+# 		if os.path.exists("001.jpg"):
+# 			img=pygame.image.load("001.jpg") 
+# 			img = pygame.transform.scale(img, (400, 400))
+# 			if i==0:
+# 				screen.blit(img,(0, 0))
+# 			elif i==1:
+# 				screen.blit(img,(600, 0))
+# 			elif i==2:
+# 				screen.blit(img,(0, 600))
+# 			else:
+# 				screen.blit(img,(600, 600))
+# 			pygame.display.flip()				
+# 		else:
+# 			i-=1
+# 		os.chdir('..')		
+# 	raw_input()
+# 	pygame.quit()		
 
 def drawRings(frameAvg, movie, flag):
 	frameid=""
@@ -26,12 +53,12 @@ def drawRings(frameAvg, movie, flag):
 				foo.write("\n")
 		foo.close()	
 	done=False
+	#Initializing pygame
+	pygame.init()
+	SIZE = [1380, 850]
+	screen = pygame.display.set_mode(SIZE)
+	pygame.display.set_caption(movie)
 	while not done:
-		#Initializing pygame
-		pygame.init()
-		SIZE = [1380, 850]
-		screen = pygame.display.set_mode(SIZE)
-		pygame.display.set_caption(movie)
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				done = True 
@@ -83,22 +110,17 @@ def drawRings(frameAvg, movie, flag):
 
 
 def get_video_length(path):
-	process = subprocess.Popen(['ffmpeg', '-i', "\""+path+"\""], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	stdout, stderr = process.communicate()
-	matches = re.search(r"Duration:\s{1}(?P<hours>\d+?):(?P<minutes>\d+?):(?P<seconds>\d+\.\d+?),", stdout, re.DOTALL)
-	if matches:
-		matches = matches.groupdict()
-		hours = Decimal(matches['hours'])
-		minutes = Decimal(matches['minutes'])
-		seconds = Decimal(matches['seconds'])
-	 
-		total = 0
-		total += 60 * 60 * hours
-		total += 60 * minutes
-		total += seconds
-		return total
-	return 0
+	#process = subprocess.Popen(['ffmpeg', '-i', "\""+path+"\""], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	os.system('ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 '+path+'>>duration.txt')
+	#stdout, stderr = process.communicate()
+	foo = open("duration.txt", "r")
+	temp = foo.readline()
+	temp=temp.rsplit('.',1)[0]
+	temp=int(temp)
+	return temp
+
 movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
+#menu()
 #Getting movie name:
 suggestions=[]
 while True:
@@ -135,17 +157,18 @@ while True:
 			if name.startswith(movie) and not name.endswith('.jpg'):
 				moviefile = name
 		duration = get_video_length(moviefile)
-		
+		#duration = os.system("ffmpeg -i file.flv 2>&1 | grep \"Duration\"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, \":\"); split(A[3], B, \".\"); print 3600*A[1] + 60*A[2] + B[1] }'")
 		frames=0
 		if duration==0:
 			frames=0.0167
 		else:
-			frames = 410 / duration
+			frames = 400.0/duration 
 		files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
 		if len(files) <= 1:
-			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 100x100 -f image2 %03d.jpg")
+			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 1920x1080 -f image2 %03d.jpg")
+			files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
 		for name in files:
-			#os.system('cls' if os.name == 'nt' else 'clear')
+			os.system('cls' if os.name == 'nt' else 'clear')
 			print ("proccessing frame " +name[:-4] + " of " + files[len(files)-1][:-4])
 			im = Image.open(name)
 			pix = im.load()
@@ -162,7 +185,7 @@ while True:
 				for j in xrange(100):
 					#print pix.getpixels((i, j))
 					#raw_input()
-					tempR, tempB, tempG = pix[i, j]
+					tempR, tempB, tempG = pix[int(i * 19.2), int(j*10.8)]
 					RED_VALS.append(tempR)
 					BLUE_VALS.append(tempB)
 					GREEN_VALS.append(tempG)
