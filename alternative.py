@@ -5,33 +5,47 @@ import pygame
 import subprocess
 import re
 # from decimal import Decimal
-# def menu():
-# 	movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
-# 	pygame.init()
-# 	SIZE = [1380, 850]
-# 	screen = pygame.display.set_mode(SIZE)
-# 	pygame.display.set_caption("Menu")
-	
-# 	for i in xrange(2):
-# 		movie=movielist[i]
-# 		os.chdir(os.getcwd() + '/' + movie + '/')
-# 		if os.path.exists("001.jpg"):
-# 			img=pygame.image.load("001.jpg") 
-# 			img = pygame.transform.scale(img, (400, 400))
-# 			if i==0:
-# 				screen.blit(img,(0, 0))
-# 			elif i==1:
-# 				screen.blit(img,(600, 0))
-# 			elif i==2:
-# 				screen.blit(img,(0, 600))
-# 			else:
-# 				screen.blit(img,(600, 600))
-# 			pygame.display.flip()				
-# 		else:
-# 			i-=1
-# 		os.chdir('..')		
-# 	raw_input()
-# 	pygame.quit()		
+def menu():
+	movielist=[name for name in os.listdir('.') if os.path.isdir(name) and not name==".git"]
+	pygame.init()
+	SIZE = [1380, 850]
+	screen = pygame.display.set_mode(SIZE)
+	pygame.display.set_caption("Menu")
+	font=pygame.font.Font(None,30)
+	i=0
+	flag=False
+	while True:
+		if flag:
+			break
+		for event in pygame.event.get():
+			if event.type==pygame.QUIT:
+				exit()
+			elif event.type==pygame.MOUSEBUTTONDOWN:
+				x, y=pygame.mouse.get_pos()	
+				if x<SIZE[0]*0.25:
+					i-=1
+					i=i if i>=0 else len(movielist)+i
+					
+				elif x>SIZE[0]*0.75:
+					i+=1
+					i=i if i<len(movielist) else i-len(movielist)
+					
+				else:
+					flag=True
+		movie=movielist[i]
+		os.chdir(os.getcwd() + '/' + movie + '/')
+		if os.path.exists("RESULT.jpg"):
+			img=pygame.image.load("RESULT.jpg") 
+			screen.blit(img, (0, 10))
+	  		title=font.render(movie, 1,(255,255,255))
+	   		screen.blit(title, (0, 0))
+			pygame.display.flip()
+
+		os.chdir('..')
+	pygame.display.quit()
+	pygame.quit()					
+	return movie	
+						
 
 def drawRings(frameAvg, movie, flag):
 	frameid=""
@@ -62,6 +76,8 @@ def drawRings(frameAvg, movie, flag):
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				done = True 
+		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			done=True
 		if pygame.mouse.get_pressed()[0]:
 			x, y=pygame.mouse.get_pos()
 			r=int(sqrt(((SIZE[0]/2)-x)*((SIZE[0]/2)-x)+((SIZE[1]/2)-y)*((SIZE[1]/2)-y)))
@@ -103,7 +119,23 @@ def drawRings(frameAvg, movie, flag):
 			color=(r, b, g)
 			pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], len(frameAvg)-i)
 		pygame.display.flip()
-	
+
+	#ensures that RESULT has the avg background
+	pygame.display.set_caption(movie)
+	ravg, bavg, gavg=0, 0, 0
+	for i in xrange(len(frameAvg)):
+		ravg+=int(frameAvg[i][0])
+		bavg+=int(frameAvg[i][1])
+		gavg+=int(frameAvg[i][2])
+	ravg/=len(frameAvg)	
+	bavg/=len(frameAvg)
+	gavg/=len(frameAvg) 
+	screen.fill((ravg, bavg, gavg))	
+	for i in xrange(len(frameAvg)):
+		r, b, g=(int(frameAvg[len(frameAvg)-1-i][0]), int(frameAvg[len(frameAvg)-1-i][1]), int(frameAvg[len(frameAvg)-1-i][2]))
+		color=(r, b, g)
+		pygame.draw.circle(screen, color, [SIZE[0] / 2, SIZE[1] / 2], len(frameAvg)-i)
+	pygame.display.flip()
 	pygame.image.save(screen, "RESULT.JPG")
 	pygame.display.quit()
 	pygame.quit()
@@ -111,7 +143,7 @@ def drawRings(frameAvg, movie, flag):
 
 def get_video_length(path):
 	#process = subprocess.Popen(['ffmpeg', '-i', "\""+path+"\""], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	os.system('ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 '+path+'>>duration.txt')
+	os.system('ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "'+path+'">>duration.txt')
 	#stdout, stderr = process.communicate()
 	foo = open("duration.txt", "r")
 	temp = foo.readline()
@@ -125,7 +157,10 @@ movielist=[name for name in os.listdir('.') if os.path.isdir(name)]
 suggestions=[]
 while True:
 	flag = False
-	movie = raw_input("Enter Movie Name ('list' for all available movies): ")
+	movie=menu()
+	if movie=="quit":
+		break
+	#movie = raw_input("Enter Movie Name ('list' for all available movies): ")
 	if len(suggestions)>0 and movie.isdigit():
 		movie=suggestions[int(movie)-1]
 
@@ -165,7 +200,7 @@ while True:
 			frames = 400.0/duration 
 		files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
 		if len(files) <= 1:
-			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 1920x1080 -f image2 %03d.jpg")
+			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 1380x850 -f image2 %03d.jpg")
 			files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.jpg')]
 		for name in files:
 			os.system('cls' if os.name == 'nt' else 'clear')
@@ -185,7 +220,7 @@ while True:
 				for j in xrange(100):
 					#print pix.getpixels((i, j))
 					#raw_input()
-					tempR, tempB, tempG = pix[int(i * 19.2), int(j*10.8)]
+					tempR, tempB, tempG = pix[int(i * 13.8), int(j*8.5)]
 					RED_VALS.append(tempR)
 					BLUE_VALS.append(tempB)
 					GREEN_VALS.append(tempG)
