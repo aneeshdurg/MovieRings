@@ -8,7 +8,8 @@ Movie Rings displays a series of concentric circles showing the progression of c
 
 Most file formats are supported. Place the video file in a folder of the same name as the file. This  folder should be in the same directory as the .py file.
  
-Made at Yhack by:
->Aneesh Durg
+>Developed at YHack 2015
 
->Akash Goel	
+### Developers:
+- [Aneesh Durg](https://github.com/aneeshdurg) 
+- [Akash Goel](https://github.com/A-Goel) 
