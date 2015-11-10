@@ -8,6 +8,13 @@ from decimal import Decimal
 
 
 def drawRings(frameAvg, movie, flag):
+	for name in os.listdir('.'):
+			#print name
+			if name.startswith(movie) and not name.endswith('.bmp'):
+				moviefile = name
+	dur = get_video_length(moviefile)
+	totalMinute, totalSecond = divmod(dur, 60)
+	totalHour, totalMinute = divmod(totalMinute, 60)
 	frameID=""
 	if flag:
 		##Reading file
@@ -52,6 +59,8 @@ def drawRings(frameAvg, movie, flag):
 				saveImg = not saveImg
 		#Get Mouse Position
 		x, y=pygame.mouse.get_pos()
+		#Get color of position
+		#mouseColor = screen.get_at((x, y))
 		#Calculate Radius and Frame
 		r=int(sqrt(((SIZE[0]/2)-x)*((SIZE[0]/2)-x)+((SIZE[1]/2)-y)*((SIZE[1]/2)-y)))
 		if (r - 1) > len(frameAvg):		#If outside rings, frame is null
@@ -63,12 +72,18 @@ def drawRings(frameAvg, movie, flag):
 				frameID="0"+frameID		
 		if not os.path.exists(frameID+".bmp"):
 			frameID=""
+		#Increase current circle radius
+		
 		#Draw Frame		
 		if not frameID=="":
-			pygame.display.set_caption("Displaying frame "+frameID+" of "+movie)
+			frameDuration = (int(frameID) * dur)/len(frameAvg)
+			frameMinute, frameSecond = divmod(frameDuration, 60)
+			frameHour, frameMinute = divmod(frameMinute, 60)
+			pygame.display.set_caption("[" + str("%d:%02d:%02d" % (frameHour, frameMinute, frameSecond)) + "]" + "  of  " + "[" + str("%d:%02d:%02d" % (totalHour, totalMinute, totalSecond)) + "]")
 			img=pygame.image.load(frameID+".bmp") 
+			img = pygame.transform.scale(img, (700, 350))
 			img = img.convert()
-			img.set_alpha(228)
+			img.set_alpha(243)
 			screen.blit(img,(x, y))
 		else:
 			pygame.display.set_caption(movie)
@@ -128,11 +143,11 @@ while True:
 				moviefile = name
 
 		duration = get_video_length(moviefile)
-		frames = 410 / duration
-		frames = round(frames, 2)
+		fps = 410 / duration
+		fps = round(fps, 2)
 		files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.bmp')]
 		if len(files) <= 1:
-			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(frames) + " -s 500x280 -f image2 %03d.bmp")
+			os.system("ffmpeg -i \"" + moviefile + "\" -r " + str(fps) + " -s 700x350 -f image2 %03d.bmp")
 			files=[name for name in os.listdir('.') if os.path.isfile(name) and name.endswith('.bmp')]
 		for name in files:
 			os.system('cls' if os.name == 'nt' else 'clear')
