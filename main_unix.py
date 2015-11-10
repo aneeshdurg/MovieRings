@@ -81,9 +81,9 @@ def drawRings(frameAvg, movie, flag):
 			frameHour, frameMinute = divmod(frameMinute, 60)
 			pygame.display.set_caption("[" + str("%d:%02d:%02d" % (frameHour, frameMinute, frameSecond)) + "]" + "  of  " + "[" + str("%d:%02d:%02d" % (totalHour, totalMinute, totalSecond)) + "]")
 			img=pygame.image.load(frameID+".bmp") 
-			img = pygame.transform.scale(img, (700, 350))
+			#img = pygame.transform.scale(img, (700, 350))
 			img = img.convert()
-			img.set_alpha(243)
+			#img.set_alpha(243)
 			screen.blit(img,(x, y))
 		else:
 			pygame.display.set_caption(movie)
@@ -162,9 +162,9 @@ while True:
 			avgBlue = 0
 			avgGreen = 0
 			#avgAlpha = 0
-			for i in xrange(100):
-				for j in xrange(100):
-					tempR, tempB, tempG = pix[int(i * 5), int(j * 2.8)]
+			for i in xrange(200):
+				for j in xrange(200):
+					tempR, tempB, tempG = pix[int(i * 3.5), int(j * 1.75)]
 					RED_VALS.append(tempR)
 					BLUE_VALS.append(tempB)
 					GREEN_VALS.append(tempG)
